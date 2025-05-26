@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User } from '../types/User';
+import { User } from '../types/User.ts';
 
 const USER_KEY = 'loggedUser';
 
