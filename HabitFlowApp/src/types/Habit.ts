@@ -3,4 +3,5 @@ export interface Habit {
   name: string;
   frequency: 'daily' | 'weekly';
   createdAt: string;
+  updatedAt?: string;
 }
