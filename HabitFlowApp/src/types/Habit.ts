@@ -4,4 +4,5 @@ export interface Habit {
   frequency: 'daily' | 'weekly';
   createdAt: string;
   updatedAt?: string;
+  goalId?: string;
 }
