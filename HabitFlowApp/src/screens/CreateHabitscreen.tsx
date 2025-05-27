@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { addHabit } from '../services/habitServices.ts';
-import { addGoal } from '../services/goalServices.ts';
+import { addHabit } from '../services/habitServices';
+import { addGoal } from '../services/goalServices';
 import { Picker } from '@react-native-picker/picker';
 
 type RootStackParamList = {
@@ -55,15 +55,17 @@ const CreateHabitScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
     try {
+      const newGoalId = Date.now().toString();
       await addHabit({
         id: Date.now().toString(),
         name: habitName.trim(),
         frequency: habitType as any,
         createdAt: new Date().toISOString(),
+         goalId: newGoalId,
 
       });
       await addGoal({
-        id: Date.now().toString(),
+        id: newGoalId,
         title: goalName.trim(),
         completed: 0,
         target: parseInt(period),

@@ -15,5 +15,8 @@ export const Icons = {
     newhabit: require('../assets/newHabit.png'),
     settings: require('../assets/settings.png'),
     stat: require('../assets/stat.png'),
+    homeOn: require('../assets/homeOn.png'),
+    settingsOn: require('../assets/settingsOn.png'),
+    statOn: require('../assets/statOn.png'),
 
 }
