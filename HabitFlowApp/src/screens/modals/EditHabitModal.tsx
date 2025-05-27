@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  Button, 
-  Alert, 
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
@@ -12,8 +12,8 @@ import {
   Modal,
   Pressable,
   Image,
-  
-  } from 'react-native';
+
+} from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { updateHabit, getHabits } from '../../services/habitServices';
 import { getGoals, saveGoals } from '../../services/goalServices';
@@ -44,7 +44,7 @@ const EditHabitModal = () => {
   const navigation = useNavigation();
   const habitId = route.params?.habitId;
   const [period, setPeriod] = useState('30');
-    const [habitType, setHabitType] = useState('everyday');
+  const [habitType, setHabitType] = useState('everyday');
 
   const [habit, setHabit] = useState<Habit | null>(null);
   const [goal, setGoal] = useState<Goal | null>(null);
@@ -108,7 +108,7 @@ const EditHabitModal = () => {
 
       await updateHabit(updatedHabit);
 
-      // Update goal if it exists
+      // Update goal 
       if (goal && habit.goalId) {
         const goals = await getGoals();
         const updatedGoals = goals.map(g =>
@@ -207,37 +207,40 @@ const EditHabitModal = () => {
 
 
 
-         <TouchableOpacity onPress={handleSave} activeOpacity={0.9}>
-                     <LinearGradient
-                       colors={['#FFA450', '#FF5C00']}
-                       style={styles.button}
-                       start={{ x: 0, y: 0 }}
-                       end={{ x: 1, y: 0 }}
-                     >
-                       <Text style={styles.buttonText}> Update </Text>
-                     </LinearGradient>
-                   </TouchableOpacity>
-                 </View>
-               </Modal>
-             </SafeAreaView>
-           );
-         };
+          <TouchableOpacity onPress={handleSave} activeOpacity={0.9}>
+            <LinearGradient
+              colors={['#FFA450', '#FF5C00']}
+              style={styles.button}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.buttonText}> Update </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+};
 
-        export default EditHabitModal;
+export default EditHabitModal;
 
-       const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: 'transparent' },
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: 'transparent'
+  },
 
 
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#CBCBCB',
+    backgroundColor: '#D9D9D9',
   },
 
 
   card: {
-    marginHorizontal: 22,
-    marginTop: 150,
+    marginHorizontal: 23,
+    marginTop: 118,
     backgroundColor: '#FCFCFF',
     borderRadius: 6,
     padding: 15,

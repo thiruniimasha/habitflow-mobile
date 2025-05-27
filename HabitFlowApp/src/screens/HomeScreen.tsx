@@ -177,46 +177,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleDeleteHabit = () => {
     if (selectedHabitId) {
-      const habitToDelete = habits.find(h => h.id === selectedHabitId);
-      if (habitToDelete) {
-        Alert.alert(
-          'Confirm Delete',
-          `Are you sure you want to delete "${habitToDelete.name}"? This action cannot be undone.`,
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-            {
-              text: 'Delete',
-              style: 'destructive',
-              onPress: async () => {
-                try {
-                  await deleteHabit(selectedHabitId);
-
-                 
-                  if (habitToDelete.goalId) {
-                    const updatedGoals = goals.filter(g => g.id !== habitToDelete.goalId);
-                    await saveGoals(updatedGoals);
-                    setGoals(updatedGoals);
-                  }
-
-                  
-                  await loadHabits();
-
-                  Alert.alert('Success', 'Habit deleted successfully.');
-                } catch (error) {
-                  console.error('Error deleting habit:', error);
-                  Alert.alert('Error', 'Could not delete habit. Please try again.');
-                } finally {
-                  setDropdownVisible(false);
-                }
-              },
-            },
-          ]
-        );
-      }
+       setDropdownVisible(false);
+      navigation.navigate('DeleteHabit', { habitId: selectedHabitId });
     }
+      
   };
   const getFormattedDate = () => {
     const days = ['Sun,', 'Mon,', 'Tue,', 'Wed,', 'Thu,', 'Fri,', 'Sat,'];
@@ -279,9 +243,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.goalItem}>
         <View style={styles.goalHeader}>
           <Text style={styles.goalTitle}>{item.title}</Text>
-          <TouchableOpacity onPress={() => { }}>
-            <Text style={styles.moreButton}>:</Text>
-          </TouchableOpacity>
+         
         </View>
 
         <View style={styles.progressContainer}>
@@ -605,55 +567,55 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   goalList: {
-    marginTop: 10,
+    marginTop: 16,
   },
   goalItem: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderRadius: 9,
+    padding: 11,
+    marginBottom: 16,
+    
   },
   goalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
   },
   goalTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    fontFamily: 'Nunito',
+    color: '2F2F2F',
     flex: 1,
     flexWrap: 'wrap',
   },
-  moreButton: {
-    fontSize: 18,
-    color: '#888',
-    paddingHorizontal: 8,
-  },
+
   progressContainer: {
     marginTop: 8,
   },
   progressBarContainer: {
-    height: 8,
-    backgroundColor: '#eee',
-    borderRadius: 4,
+    height: 13,
+    backgroundColor: '#E7E7E7',
+    borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 6,
   },
   progressBarFill: {
-    height: 8,
-    backgroundColor: '#FF7831',
+    height: 13,
+    backgroundColor: '#FF5C00',
+    borderRadius: 3,
   },
   progressText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: 'Nunito',
+    color: '#2F2F2F',
   },
   goalFrequency: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: 14,
+    color: '#FF5C00',
     marginTop: 2,
+    fontFamily: 'Nunito',
+    fontWeight: '500',
   },
 
 
@@ -690,6 +652,7 @@ const styles = StyleSheet.create({
   iconHome: {
     width: 24,
     height: 24,
+   
 
   },
   iconProgress: {
@@ -705,23 +668,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: '#fff',
     elevation: 5,
-    width: 79,
-    height: 60,
+   
     zIndex: 999,
   },
 
-  dropdownOption: {
-    paddingVertical: 6,
-    paddingHorizontal: 7,
+  
 
-  },
-
-  dropdownOptionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    fontFamily: 'Nunito',
-    color: '#838383',
-  },
+  
 
   overlayTouchable: {
     position: 'absolute',
@@ -740,7 +693,7 @@ const styles = StyleSheet.create({
 
 
   dropdownItem: {
-    paddingVertical: 10,
+    paddingVertical: 6,
     paddingHorizontal: 15,
   },
 
