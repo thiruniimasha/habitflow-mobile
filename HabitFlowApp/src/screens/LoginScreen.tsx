@@ -10,7 +10,7 @@ import {
   StatusBar,
   Image
 } from 'react-native';
-import { getUser } from '../services/storage';
+import { getUser, saveUser, validateUserCredentials, clearUser } from '../services/storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import { Icons } from '../utils/Icon';
@@ -40,16 +40,32 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const onLogin = async () => {
-    const user = await getUser();
-    if (user && user.email === email && user.password === password) {
-      navigation.replace('Home');
-    } else {
-      Alert.alert('Invalid credentials');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both email and password.');
+      return;
+    }
+
+    try {
+    
+      await clearUser();
+      
+      const validUser = await validateUserCredentials(email.trim(), password);
+      
+      if (validUser) {
+       
+        await saveUser(validUser);
+        
+        navigation.replace('Home');
+      } else {
+        Alert.alert('Invalid credentials', 'Please check your email and password.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'An error occurred during login. Please try again.');
     }
   };
 
   const onForgotPassword = () => {
-   
     Alert.alert('Reset Password', 'Password reset functionality will be implemented here.');
   };
 
@@ -80,8 +96,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          
-         
           
           <Text style={styles.label}>Password</Text>
           <TextInput
@@ -146,7 +160,6 @@ const styles = StyleSheet.create({
   signUpLink: {
     marginTop: 113,
     marginRight: 40,
-
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -180,8 +193,6 @@ const styles = StyleSheet.create({
     width: 300,
     height: 42,
     marginBottom: 22,
-    
-    
     fontSize: 16,
   },
   

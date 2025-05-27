@@ -110,21 +110,24 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F6F6F6',
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    padding: 20,
+    marginTop: 64,
+    marginLeft: 21,
   },
   title: {
-    fontSize: 24,
+    fontSize: 29,
     fontWeight: 'bold',
     color: '#2F2F2F',
-    marginBottom: 20,
+    marginBottom: 26,
+    fontFamily: 'Nunito',
   },
   optionsContainer: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    margin: 20,
+    borderRadius: 12,
+    
+    
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -132,23 +135,27 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 1,
+    gap: 10,
   },
   option: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 21,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },
   optionText: {
     fontSize: 16,
     color: '#2F2F2F',
+    fontFamily: 'Nunito',
+    fontWeight: 'bold',
   },
   arrowIcon: {
     fontSize: 20,
-    color: '#CCCCCC',
+    color: '#2F2F2F',
   },
   logoutOption: {
     justifyContent: 'center',
@@ -157,6 +164,8 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     color: '#FF3B30',
+    fontFamily: 'Nunito',
+    fontWeight: 'bold',
   },
   footer: {
     flexDirection: 'row',
