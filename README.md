@@ -61,6 +61,11 @@ npm install
 
 ---
 
+🎨 Figma Design
+This app strictly follows the UI design provided in the official Figma:
+
+👉 https://www.figma.com/design/TaWca10fsB1Rjb8YzY7JXX/HABITA-Habit-Tracker-UI-Kit--Community-?node-id=3-2&p=f&t=sFVPPfCdT8iu3qiV-0
+
 ## 🎥 Demo Video
 
 👉 
@@ -93,6 +98,8 @@ habit-tracker/
 - React Navigation
 
 ---
+
+
 
 ## 👤 Author
 
