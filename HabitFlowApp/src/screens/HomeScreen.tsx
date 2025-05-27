@@ -61,15 +61,24 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadUserData();
     const unsubscribe = navigation.addListener('focus', () => {
+      loadUserData();
       loadHabits();
       loadGoals();
     });
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      loadHabits();
+      loadGoals();
+    }
+  }, [currentUserId]);
 
   const loadGoals = async () => {
     try {
@@ -88,7 +97,34 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     try {
       const user = await getUser();
       if (user) {
-        setUserName(user.name);
+        if (currentUserId !== user.email) {
+        
+          setUserName(user.name);
+          setCurrentUserId(user.email);
+          setHabits([]);
+          setCompletedToday([]);
+          setGoals([]);
+          setCompletionRate(0);
+          setShowAllHabits(false);
+          setShowAllGoals(false);
+          setSelectedHabitId(null);
+          setDropdownVisible(false);
+        }
+        else {
+          setUserName(user.name);
+        }
+      }
+      else {
+        setUserName('');
+        setCurrentUserId(null);
+        setHabits([]);
+        setCompletedToday([]);
+        setGoals([]);
+        setCompletionRate(0);
+        setShowAllHabits(false);
+        setShowAllGoals(false);
+        setSelectedHabitId(null);
+        setDropdownVisible(false);
       }
     } catch (error) {
       console.log('Error loading user data:', error);
@@ -116,25 +152,25 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       setCompletionRate(0);
       return;
     }
-    
-   
-    const validCompletedHabits = completedToday.filter(completedId => 
+
+
+    const validCompletedHabits = completedToday.filter(completedId =>
       habits.some(habit => habit.id === completedId)
     );
-    
+
     const completedCount = validCompletedHabits.length;
     const rate = Math.round((completedCount / habits.length) * 100);
-    setCompletionRate(Math.min(rate, 100)); 
-    
-    
+    setCompletionRate(Math.min(rate, 100));
+
+
     if (validCompletedHabits.length !== completedToday.length) {
       setCompletedToday(validCompletedHabits);
     }
   };
 
-  
+
   const getValidCompletedCount = () => {
-    return completedToday.filter(completedId => 
+    return completedToday.filter(completedId =>
       habits.some(habit => habit.id === completedId)
     ).length;
   };
@@ -151,7 +187,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         if (goalToUpdate) {
           const completedHabits = await getCompletedHabits();
           const habitCompletionDates = new Set<string>();
-          
+
           Object.keys(completedHabits).forEach(date => {
             if (completedHabits[date].includes(habitId)) {
               habitCompletionDates.add(date);
@@ -160,8 +196,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
           const updatedGoals = goals.map(goal => {
             if (goal.id === completedHabit.goalId) {
-              return { 
-                ...goal, 
+              return {
+                ...goal,
                 completed: Math.min(habitCompletionDates.size, goal.target)
               };
             }
@@ -193,11 +229,11 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleDeleteHabit = () => {
     if (selectedHabitId) {
-       setDropdownVisible(false);
+      setDropdownVisible(false);
       navigation.navigate('DeleteHabit', { habitId: selectedHabitId });
     }
   };
-  
+
   const getFormattedDate = () => {
     const days = ['Sun,', 'Mon,', 'Tue,', 'Wed,', 'Thu,', 'Fri,', 'Sat,'];
     const months = [
@@ -428,8 +464,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FCFCFF'
   },
   header: {
-  
-  
+
+
   },
 
   date: {
@@ -580,7 +616,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   goalList: {
-  
+
   },
   goalItem: {
     backgroundColor: '#fff',

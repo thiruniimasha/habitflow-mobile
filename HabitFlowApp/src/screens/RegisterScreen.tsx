@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Alert, TouchableOpacity, SafeAreaView, StatusBar, Image } from 'react-native';
-import { saveUser } from '../services/storage';
+import { saveRegisteredUser, saveUser } from '../services/storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import LinearGradient from 'react-native-linear-gradient';
 import { Icons } from '../utils/Icon';
@@ -21,7 +21,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const onSignUp = async () => {
-   
+
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Please fill all fields');
       return;
@@ -38,10 +38,40 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    await saveUser({ name, email, password });
-    Alert.alert('Sign Up Successfully');
-    navigation.replace('Login');
+    try {
+      const newUser = {
+        name: name,
+        email: email,
+        password: password,
+      };
+
+      await saveRegisteredUser(newUser);
+
+      await saveUser(newUser);
+
+      Alert.alert(
+        'Success',
+        'Account created successfully!',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.replace('Home'),
+          },
+        ]
+      );
+    } catch (error) {
+      if (error.message === 'User already exists') {
+        Alert.alert('Error', 'An account with this email already exists.');
+      } else {
+        console.error('Registration error:', error);
+        Alert.alert('Error', 'An error occurred during registration. Please try again.');
+      }
+    }
   };
+
+
+
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -110,7 +140,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F6F6F6',
-   
+
   },
   header: {
     flexDirection: 'row',
@@ -163,8 +193,8 @@ const styles = StyleSheet.create({
     width: 300,
     height: 42,
     marginBottom: 22,
-    
-    
+
+
     fontSize: 16,
   },
   button: {
