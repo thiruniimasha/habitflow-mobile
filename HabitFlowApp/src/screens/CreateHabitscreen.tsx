@@ -17,6 +17,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { addHabit } from '../services/habitServices';
 import { addGoal } from '../services/goalServices';
 import { Picker } from '@react-native-picker/picker';
+import { sub } from 'date-fns';
 
 type RootStackParamList = {
   Home: undefined;
@@ -43,6 +44,7 @@ const CreateHabitScreen: React.FC<Props> = ({ navigation }) => {
   const [habitName, setHabitName] = useState('');
   const [period, setPeriod] = useState('30');
   const [habitType, setHabitType] = useState('everyday');
+   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const close = () => {
     setModalVisible(false);
@@ -71,14 +73,19 @@ const CreateHabitScreen: React.FC<Props> = ({ navigation }) => {
         target: parseInt(period),
         frequency: habitType,
       });
-      Alert.alert('Great!', 'Habit goal created.', [
-        { text: 'OK', onPress: () => close() },
-      ]);
+      setShowSuccessModal(true);
     } catch (e) {
       Alert.alert('Error', 'Could not save, try again.');
       console.error(e);
     }
   };
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
+    navigation.goBack();
+  };
+
+
 
   return (
     <SafeAreaView style={styles.root}>
@@ -153,6 +160,34 @@ const CreateHabitScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.buttonText}>Create New</Text>
             </LinearGradient>
           </TouchableOpacity>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleSuccessClose}
+      >
+        <View style={styles.successLayer}>
+          <View style={styles.successCard}>
+            <Image source={require('../assets/newHabit.png')} style={styles.newHabit} />
+            <Text style={styles.done}>Done!</Text>
+            <Text style={styles.subText}>
+              New Habit Goal has added
+            </Text>
+            <Text style = {styles.subText}> Let's do the best to achieve your goal ! </Text>
+            <TouchableOpacity onPress={handleSuccessClose} activeOpacity={0.9}>
+              <LinearGradient
+                colors={['#FFA450', '#FF5C00']}
+                style={styles.buttonOk}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.buttonText}>OK</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </SafeAreaView>
@@ -236,7 +271,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 4,
     alignItems: 'center',
-    height: 49
+    height: 49,
+   
+    
   },
   buttonText: {
     color: '#fff',
@@ -245,4 +282,53 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito',
 
   },
+
+  newHabit: {
+    width: 406,
+    height: 306,
+    alignSelf: 'center',
+    marginBottom: 20,
+    
+  },
+  done: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#2F2F2F',
+    fontFamily: 'Nunito',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+
+  subText: {
+    fontSize: 16,
+    color: '#2F2F2F',
+    fontWeight: '600',
+    fontFamily: 'Nunito',
+    textAlign: 'center',
+    
+  },
+  successLayer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successCard: {
+   
+    
+    marginTop: 0,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    
+  },
+  buttonOk: {
+    justifyContent: 'center',
+    borderRadius: 4,
+    alignItems: 'center',
+    height: 49,
+    width: 298,
+    marginTop: 46,
+  },
+ 
 });
