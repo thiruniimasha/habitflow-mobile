@@ -17,6 +17,7 @@ import {
   getHabits,
   markHabitAsCompleted,
   getTodayCompletedHabits,
+  getCompletedHabits
 } from '../services/habitServices';
 import { getGoals } from '../services/goalServices';
 import { Habit } from '../types/Habit';
@@ -118,26 +119,47 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleMarkCompleted = async (habitId: string) => {
-    try {
-      await markHabitAsCompleted(habitId);
-      const completed = await getTodayCompletedHabits();
-      setCompletedToday(completed || []);
+  try {
+    await markHabitAsCompleted(habitId);
+    const completed = await getTodayCompletedHabits();
+    setCompletedToday(completed || []);
 
-      const completedHabit = habits.find(h => h.id === habitId);
+    // Find the completed habit and update its associated goal
+    const completedHabit = habits.find(h => h.id === habitId);
     if (completedHabit?.goalId) {
-      const updatedGoals = goals.map(goal => {
-        if (goal.id === completedHabit.goalId && goal.completed < goal.target) {
-          return { ...goal, completed: goal.completed + 1 };
-        }
-        return goal;
-      });
+      // Calculate the actual progress for this goal
+      const goalToUpdate = goals.find(g => g.id === completedHabit.goalId);
+      if (goalToUpdate) {
+        // Get all completed habits for this goal across all days
+        const completedHabits = await getCompletedHabits();
+        const habitCompletionDates = new Set<string>();
+        
+        // Count unique days when this habit was completed
+        Object.keys(completedHabits).forEach(date => {
+          if (completedHabits[date].includes(habitId)) {
+            habitCompletionDates.add(date);
+          }
+        });
 
-      setGoals(updatedGoals);
+        const updatedGoals = goals.map(goal => {
+          if (goal.id === completedHabit.goalId) {
+            return { 
+              ...goal, 
+              completed: Math.min(habitCompletionDates.size, goal.target)
+            };
+          }
+          return goal;
+        });
+
+        // Save updated goals to AsyncStorage
+        await saveGoals(updatedGoals);
+        setGoals(updatedGoals);
+      }
     }
-    } catch (error) {
-      console.log('Error marking habit as completed:', error);
-    }
-  };
+  } catch (error) {
+    console.log('Error marking habit as completed:', error);
+  }
+};
 
   const handleInfoPress = (habitId: string, event: any) => {
     const { pageX, pageY } = event.nativeEvent;
@@ -147,55 +169,55 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleEditHabit = () => {
-  if (selectedHabitId) {
-    setDropdownVisible(false);
-    navigation.navigate('EditHabit', { habitId: selectedHabitId });
-  }
-};
+    if (selectedHabitId) {
+      setDropdownVisible(false);
+      navigation.navigate('EditHabit', { habitId: selectedHabitId });
+    }
+  };
 
   const handleDeleteHabit = () => {
-  if (selectedHabitId) {
-    const habitToDelete = habits.find(h => h.id === selectedHabitId);
-    if (habitToDelete) {
-      Alert.alert(
-        'Confirm Delete',
-        `Are you sure you want to delete "${habitToDelete.name}"? This action cannot be undone.`,
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Delete',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await deleteHabit(selectedHabitId);
-                
-                // Also delete the associated goal if it exists
-                if (habitToDelete.goalId) {
-                  const updatedGoals = goals.filter(g => g.id !== habitToDelete.goalId);
-                  await saveGoals(updatedGoals);
-                  setGoals(updatedGoals);
-                }
-
-                // Refresh habits list
-                await loadHabits();
-                
-                Alert.alert('Success', 'Habit deleted successfully.');
-              } catch (error) {
-                console.error('Error deleting habit:', error);
-                Alert.alert('Error', 'Could not delete habit. Please try again.');
-              } finally {
-                setDropdownVisible(false);
-              }
+    if (selectedHabitId) {
+      const habitToDelete = habits.find(h => h.id === selectedHabitId);
+      if (habitToDelete) {
+        Alert.alert(
+          'Confirm Delete',
+          `Are you sure you want to delete "${habitToDelete.name}"? This action cannot be undone.`,
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
             },
-          },
-        ]
-      );
+            {
+              text: 'Delete',
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  await deleteHabit(selectedHabitId);
+
+                  // Also delete the associated goal if it exists
+                  if (habitToDelete.goalId) {
+                    const updatedGoals = goals.filter(g => g.id !== habitToDelete.goalId);
+                    await saveGoals(updatedGoals);
+                    setGoals(updatedGoals);
+                  }
+
+                  // Refresh habits list
+                  await loadHabits();
+
+                  Alert.alert('Success', 'Habit deleted successfully.');
+                } catch (error) {
+                  console.error('Error deleting habit:', error);
+                  Alert.alert('Error', 'Could not delete habit. Please try again.');
+                } finally {
+                  setDropdownVisible(false);
+                }
+              },
+            },
+          ]
+        );
+      }
     }
-  }
-};
+  };
   const getFormattedDate = () => {
     const days = ['Sun,', 'Mon,', 'Tue,', 'Wed,', 'Thu,', 'Fri,', 'Sat,'];
     const months = [
@@ -348,8 +370,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Your Goals</Text>
             <TouchableOpacity onPress={() => setShowAllGoals(!showAllGoals)}>
-  <Text style={styles.seeAllText}>{showAllGoals ? 'Show less' : 'See all'}</Text>
-</TouchableOpacity>
+              <Text style={styles.seeAllText}>{showAllGoals ? 'Show less' : 'See all'}</Text>
+            </TouchableOpacity>
           </View>
 
           <FlatList
@@ -370,31 +392,31 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* Edit/Delete Modal */}
       <Modal
-  visible={dropdownVisible}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setDropdownVisible(false)}
->
-  <TouchableOpacity
-    style={styles.modalOverlay}
-    activeOpacity={1}
-    onPressOut={() => setDropdownVisible(false)}
-  >
-    <View
-      style={[
-        styles.dropdownMenu,
-        { top: dropdownPosition.y, left: dropdownPosition.x },
-      ]}
-    >
-      <TouchableOpacity style={styles.dropdownItem} onPress={handleEditHabit}>
-        <Text style={styles.dropdownText}>Edit</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.dropdownItem} onPress={handleDeleteHabit}>
-        <Text style={[styles.dropdownText, { color: 'red' }]}>Delete</Text>
-      </TouchableOpacity>
-    </View>
-  </TouchableOpacity>
-</Modal>
+        visible={dropdownVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDropdownVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPressOut={() => setDropdownVisible(false)}
+        >
+          <View
+            style={[
+              styles.dropdownMenu,
+              { top: dropdownPosition.y, left: dropdownPosition.x },
+            ]}
+          >
+            <TouchableOpacity style={styles.dropdownItem} onPress={handleEditHabit}>
+              <Text style={styles.dropdownText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dropdownItem} onPress={handleDeleteHabit}>
+              <Text style={[styles.dropdownText, { color: 'red' }]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
 
 
@@ -711,21 +733,21 @@ const styles = StyleSheet.create({
   },
 
   modalOverlay: {
-  flex: 1,
-  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-},
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  },
 
 
 
-dropdownItem: {
-  paddingVertical: 10,
-  paddingHorizontal: 15,
-},
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
 
-dropdownText: {
-  fontSize: 16,
-  color: '#333',
-},
+  dropdownText: {
+    fontSize: 16,
+    color: '#333',
+  },
 
 });
 
