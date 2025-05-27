@@ -124,17 +124,17 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     const completed = await getTodayCompletedHabits();
     setCompletedToday(completed || []);
 
-    // Find the completed habit and update its associated goal
+    
     const completedHabit = habits.find(h => h.id === habitId);
     if (completedHabit?.goalId) {
-      // Calculate the actual progress for this goal
+      
       const goalToUpdate = goals.find(g => g.id === completedHabit.goalId);
       if (goalToUpdate) {
-        // Get all completed habits for this goal across all days
+        
         const completedHabits = await getCompletedHabits();
         const habitCompletionDates = new Set<string>();
         
-        // Count unique days when this habit was completed
+       
         Object.keys(completedHabits).forEach(date => {
           if (completedHabits[date].includes(habitId)) {
             habitCompletionDates.add(date);
@@ -151,7 +151,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           return goal;
         });
 
-        // Save updated goals to AsyncStorage
+       
         await saveGoals(updatedGoals);
         setGoals(updatedGoals);
       }
@@ -194,14 +194,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 try {
                   await deleteHabit(selectedHabitId);
 
-                  // Also delete the associated goal if it exists
+                 
                   if (habitToDelete.goalId) {
                     const updatedGoals = goals.filter(g => g.id !== habitToDelete.goalId);
                     await saveGoals(updatedGoals);
                     setGoals(updatedGoals);
                   }
 
-                  // Refresh habits list
+                  
                   await loadHabits();
 
                   Alert.alert('Success', 'Habit deleted successfully.');

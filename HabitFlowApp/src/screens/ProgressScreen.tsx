@@ -47,7 +47,7 @@ interface HabitProgress {
   streak: number;
 }
 
-// Simple Progress Circle Component
+
 const SimpleProgressCircle = ({
   size,
   progress,
@@ -125,7 +125,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
       setHabits(habitsData);
       setGoals(goalsData);
 
-      // Load habit progress for selected date
+      
       if (activeTab === 'habits') {
         loadHabitProgress(habitsData, selectedDate);
       } else {
@@ -151,7 +151,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
 
       setHabitProgress(progressData);
       
-      // Calculate daily progress percentage
+     
       if (progressData.length > 0) {
         const completedCount = progressData.filter(habit => habit.isCompleted).length;
         const percentage = Math.round((completedCount / progressData.length) * 100);
@@ -165,8 +165,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const checkIfCompleted = (habitId: string, date: Date): boolean => {
-    // TODO: Implement your real logic here.
-    // For now, return random boolean for demo:
+   
     return Math.random() > 0.5;
   };
 
@@ -174,8 +173,8 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
     const today = new Date();
     const selected = selectedDate || today;
 
-    // Find the start of the week (Sunday)
-    const dayOfWeek = selected.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+   
+    const dayOfWeek = selected.getDay(); 
     const startOfWeek = new Date(selected);
     startOfWeek.setDate(selected.getDate() - dayOfWeek);
 
@@ -192,7 +191,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
         date: date.getDate(),
         isToday,
         isSelected,
-        hasProgress: Math.random() > 0.3, // Mock progress data
+        hasProgress: Math.random() > 0.3, 
         completionRate: Math.floor(Math.random() * 100),
       });
     }
@@ -359,7 +358,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
 
   const renderHabitsTab = () => (
     <View style={styles.tabContent}>
-      {/* Calendar */}
+     
       <View style={styles.calendarSection}>
         <View style={styles.calendarHeader}>
           <Text style={styles.calendarTitle}>
@@ -380,7 +379,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
         />
       </View>
 
-      {/* Selected Date Info */}
+      
       <View style={styles.dateInfoSection}>
         <Text style={styles.selectedDateText}>
           Progress for {selectedDate.toLocaleDateString('en-US', {
@@ -391,7 +390,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
       </View>
 
-      {/* Daily Progress Circle */}
+      
       <View style={styles.dailyProgressSection}>
         <Text style={styles.sectionTitle}>Daily Progress</Text>
         <View style={styles.progressContainer}>
@@ -415,7 +414,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
       </View>
 
-      {/* Habits List */}
+     
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Today's Habits</Text>
         <FlatList
@@ -436,7 +435,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
 
   const renderGoalsTab = () => (
     <View style={styles.tabContent}>
-      {/* Period Selector */}
+      
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Goal Progress</Text>
@@ -454,7 +453,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Overall Progress */}
+        
         <View style={styles.progressContainer}>
           <SimpleProgressCircle
             size={120}
@@ -467,7 +466,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
           </SimpleProgressCircle>
         </View>
 
-        {/* Stats */}
+      
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <View style={[styles.statIcon, { backgroundColor: '#E8F8ED' }]}>
@@ -488,7 +487,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Goals List */}
+        
         <FlatList
           data={goals}
           renderItem={renderGoalItem}
@@ -509,12 +508,12 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
+     
       <View style={styles.header}>
         <Text style={styles.title}>Progress</Text>
       </View>
 
-      {/* Tabs */}
+     
       <View style={styles.tabsContainer}>
         {renderTabButton('habits', 'Habits')}
         {renderTabButton('goals', 'Goals')}
@@ -524,7 +523,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
         {activeTab === 'habits' ? renderHabitsTab() : renderGoalsTab()}
       </ScrollView>
 
-      {/* Bottom Navigation */}
+     
       <View style={styles.footer}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
           <Image source={Icons.home} style={styles.iconButton} />
