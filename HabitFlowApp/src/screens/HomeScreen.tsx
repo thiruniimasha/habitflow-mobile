@@ -53,8 +53,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [userName, setUserName] = useState('Susy');
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [completedToday, setCompletedToday] = useState<string[]>(['1', '2']);
-  const [completionRate, setCompletionRate] = useState(70);
+  const [completedToday, setCompletedToday] = useState<string[]>([]);
+  const [completionRate, setCompletionRate] = useState(0);
   const [showAllHabits, setShowAllHabits] = useState(false);
   const [showAllGoals, setShowAllGoals] = useState(false);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -112,54 +112,70 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const calculateCompletionRate = () => {
-    if (habits.length === 0) return setCompletionRate(0);
-    const completedCount = completedToday.length;
+    if (habits.length === 0) {
+      setCompletionRate(0);
+      return;
+    }
+    
+   
+    const validCompletedHabits = completedToday.filter(completedId => 
+      habits.some(habit => habit.id === completedId)
+    );
+    
+    const completedCount = validCompletedHabits.length;
     const rate = Math.round((completedCount / habits.length) * 100);
-    setCompletionRate(rate);
+    setCompletionRate(Math.min(rate, 100)); 
+    
+    
+    if (validCompletedHabits.length !== completedToday.length) {
+      setCompletedToday(validCompletedHabits);
+    }
+  };
+
+  
+  const getValidCompletedCount = () => {
+    return completedToday.filter(completedId => 
+      habits.some(habit => habit.id === completedId)
+    ).length;
   };
 
   const handleMarkCompleted = async (habitId: string) => {
-  try {
-    await markHabitAsCompleted(habitId);
-    const completed = await getTodayCompletedHabits();
-    setCompletedToday(completed || []);
+    try {
+      await markHabitAsCompleted(habitId);
+      const completed = await getTodayCompletedHabits();
+      setCompletedToday(completed || []);
 
-    
-    const completedHabit = habits.find(h => h.id === habitId);
-    if (completedHabit?.goalId) {
-      
-      const goalToUpdate = goals.find(g => g.id === completedHabit.goalId);
-      if (goalToUpdate) {
-        
-        const completedHabits = await getCompletedHabits();
-        const habitCompletionDates = new Set<string>();
-        
-       
-        Object.keys(completedHabits).forEach(date => {
-          if (completedHabits[date].includes(habitId)) {
-            habitCompletionDates.add(date);
-          }
-        });
+      const completedHabit = habits.find(h => h.id === habitId);
+      if (completedHabit?.goalId) {
+        const goalToUpdate = goals.find(g => g.id === completedHabit.goalId);
+        if (goalToUpdate) {
+          const completedHabits = await getCompletedHabits();
+          const habitCompletionDates = new Set<string>();
+          
+          Object.keys(completedHabits).forEach(date => {
+            if (completedHabits[date].includes(habitId)) {
+              habitCompletionDates.add(date);
+            }
+          });
 
-        const updatedGoals = goals.map(goal => {
-          if (goal.id === completedHabit.goalId) {
-            return { 
-              ...goal, 
-              completed: Math.min(habitCompletionDates.size, goal.target)
-            };
-          }
-          return goal;
-        });
+          const updatedGoals = goals.map(goal => {
+            if (goal.id === completedHabit.goalId) {
+              return { 
+                ...goal, 
+                completed: Math.min(habitCompletionDates.size, goal.target)
+              };
+            }
+            return goal;
+          });
 
-       
-        await saveGoals(updatedGoals);
-        setGoals(updatedGoals);
+          await saveGoals(updatedGoals);
+          setGoals(updatedGoals);
+        }
       }
+    } catch (error) {
+      console.log('Error marking habit as completed:', error);
     }
-  } catch (error) {
-    console.log('Error marking habit as completed:', error);
-  }
-};
+  };
 
   const handleInfoPress = (habitId: string, event: any) => {
     const { pageX, pageY } = event.nativeEvent;
@@ -180,8 +196,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
        setDropdownVisible(false);
       navigation.navigate('DeleteHabit', { habitId: selectedHabitId });
     }
-      
   };
+  
   const getFormattedDate = () => {
     const days = ['Sun,', 'Mon,', 'Tue,', 'Wed,', 'Thu,', 'Fri,', 'Sat,'];
     const months = [
@@ -216,7 +232,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
         <View style={styles.habitActions}>
           <TouchableOpacity
-
             onPress={() => !isCompleted && handleMarkCompleted(item.id)}
           >
             {isCompleted ? (
@@ -226,7 +241,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             )}
           </TouchableOpacity>
           <TouchableOpacity
-
             onPress={(event) => handleInfoPress(item.id, event)}
           >
             <Image source={Icons.info} style={styles.infoIcon} />
@@ -243,7 +257,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.goalItem}>
         <View style={styles.goalHeader}>
           <Text style={styles.goalTitle}>{item.title}</Text>
-         
         </View>
 
         <View style={styles.progressContainer}>
@@ -260,6 +273,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const displayedHabits = showAllHabits ? habits : habits.slice(0, 3);
+  const validCompletedCount = getValidCompletedCount();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -268,7 +282,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
-        <View>
+        <View style={styles.header}>
           <Text style={styles.date}>{getFormattedDate()}</Text>
           <Text style={styles.greeting}>
             Hello, <Text style={styles.highlight}>{userName}!</Text>
@@ -297,7 +311,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </View>
           <View style={styles.progressTextContainer}>
             <Text style={styles.progressStatText}>
-              {completedToday.length} of {habits.length} habits
+              {validCompletedCount} of {habits.length} habits
             </Text>
             <Text style={styles.progressSubText}>completed today!</Text>
             <Image source={Icons.progressCard} style={styles.progressImg} />
@@ -310,7 +324,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <TouchableOpacity onPress={() => setShowAllHabits(!showAllHabits)}>
               <Text style={styles.seeAllText}>{showAllHabits ? 'Show less' : 'See all'}</Text>
             </TouchableOpacity>
-
           </View>
 
           <FlatList
@@ -380,11 +393,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </TouchableOpacity>
       </Modal>
 
-
-
       {/* Floating Action Button */}
       <TouchableOpacity
-
         onPress={() => navigation.navigate('CreateHabit')}
       >
         <Image source={Icons.fab} style={styles.addButton} />
@@ -397,7 +407,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           <Image source={Icons.homeOn} style={styles.iconButton} />
         </TouchableOpacity>
         <TouchableOpacity
-
           onPress={() => navigation.navigate('Progress')}
         >
           <Image source={Icons.stat} style={styles.iconButton} />
@@ -417,6 +426,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FCFCFF'
+  },
+  header: {
+  
+  
   },
 
   date: {
@@ -484,7 +497,7 @@ const styles = StyleSheet.create({
   },
   section: {
     paddingHorizontal: 20,
-    paddingVertical: 22,
+    paddingTop: 22,
     marginTop: 22,
     backgroundColor: '#fff',
   },
@@ -514,11 +527,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-
     height: 58,
     borderRadius: 5,
     backgroundColor: '#FBFBFB',
     marginBottom: 17,
+    elevation: 1,
+    shadowColor: '#000',
   },
   habitName: {
     marginLeft: 14,
@@ -537,7 +551,6 @@ const styles = StyleSheet.create({
   completedHabitName: {
     color: '#37C871',
   },
-
 
   checkBoxImage: {
     width: 30,
@@ -567,14 +580,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   goalList: {
-    marginTop: 16,
+  
   },
   goalItem: {
     backgroundColor: '#fff',
     borderRadius: 9,
     padding: 11,
     marginBottom: 16,
-    
+    elevation: 1,
+    shadowColor: '#000',
   },
   goalHeader: {
     flexDirection: 'row',
@@ -618,20 +632,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-
-
-
   addButton: {
     position: 'absolute',
     bottom: 30,
     right: 20,
-
     width: 62,
     height: 62,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-
   },
 
   footer: {
@@ -647,13 +656,10 @@ const styles = StyleSheet.create({
   iconButton: {
     alignItems: 'center',
     justifyContent: 'center',
-
   },
   iconHome: {
     width: 24,
     height: 24,
-   
-
   },
   iconProgress: {
     width: 24,
@@ -668,13 +674,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: '#fff',
     elevation: 5,
-   
     zIndex: 999,
   },
-
-  
-
-  
 
   overlayTouchable: {
     position: 'absolute',
@@ -690,8 +691,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
 
-
-
   dropdownItem: {
     paddingVertical: 6,
     paddingHorizontal: 15,
@@ -701,7 +700,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-
 });
 
 export default HomeScreen;

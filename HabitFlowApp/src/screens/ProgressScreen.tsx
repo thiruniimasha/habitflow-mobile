@@ -480,6 +480,8 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     padding: 12,
     marginBottom: 12,
+    elevation: 1,
+    shadowColor: '#000',
   },
   goalLeft: {
     marginRight: 12,
