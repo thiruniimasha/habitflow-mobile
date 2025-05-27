@@ -68,7 +68,7 @@ This app strictly follows the UI design provided in the official Figma:
 
 ## 🎥 Demo Video
 
-👉 
+👉 https://drive.google.com/drive/folders/1wVntJyUvPCZQJjjCDvZx8Vb22z6SDRuu?usp=sharing
 
 
 
