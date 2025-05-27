@@ -16,10 +16,10 @@ import {
   getHabits,
   markHabitAsCompleted,
   getTodayCompletedHabits,
-} from '../services/habitService.ts';
-import { getGoals } from '../services/goalService';
+} from '../services/habitServices';
+import { getGoals } from '../services/goalServices';
 import { Habit } from '../types/Habit';
-import { Goal } from '../types/Goal.ts';
+import { Goal } from '../types/Goal';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import LinearGradient from 'react-native-linear-gradient';
 import { ScrollView } from 'react-native';
@@ -52,6 +52,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [completedToday, setCompletedToday] = useState<string[]>(['1', '2']);
   const [completionRate, setCompletionRate] = useState(70);
   const [showAllHabits, setShowAllHabits] = useState(false);
+  const [showAllGoals, setShowAllGoals] = useState(false);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
@@ -118,6 +119,18 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       await markHabitAsCompleted(habitId);
       const completed = await getTodayCompletedHabits();
       setCompletedToday(completed || []);
+
+      const completedHabit = habits.find(h => h.id === habitId);
+    if (completedHabit?.goalId) {
+      const updatedGoals = goals.map(goal => {
+        if (goal.id === completedHabit.goalId && goal.completed < goal.target) {
+          return { ...goal, completed: goal.completed + 1 };
+        }
+        return goal;
+      });
+
+      setGoals(updatedGoals);
+    }
     } catch (error) {
       console.log('Error marking habit as completed:', error);
     }
@@ -267,11 +280,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Today Habit</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('AllHabits')}
-            >
-              <Text style={styles.seeAllText}>See all</Text>
+            <TouchableOpacity onPress={() => setShowAllHabits(!showAllHabits)}>
+              <Text style={styles.seeAllText}>{showAllHabits ? 'Show less' : 'See all'}</Text>
             </TouchableOpacity>
+
           </View>
 
           <FlatList
@@ -292,9 +304,9 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Your Goals</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('AllGoals')}>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowAllGoals(!showAllGoals)}>
+  <Text style={styles.seeAllText}>{showAllGoals ? 'Show less' : 'See all'}</Text>
+</TouchableOpacity>
           </View>
 
           <FlatList
@@ -354,7 +366,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         <TouchableOpacity
           onPress={() => navigation.navigate('Home')}
         >
-          <Image source={Icons.home} style={styles.iconButton} />
+          <Image source={Icons.homeOn} style={styles.iconButton} />
         </TouchableOpacity>
         <TouchableOpacity
 
