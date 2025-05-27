@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Goal } from '../types/Goal.ts';
+import { Goal } from '../types/Goal';
 
 const GOALS_KEY = 'user_goals';
 

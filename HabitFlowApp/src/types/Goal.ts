@@ -4,4 +4,5 @@ export type Goal = {
   completed: number;
   target: number;
   frequency: string;
+   
 };

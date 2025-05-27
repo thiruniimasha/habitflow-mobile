@@ -49,7 +49,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const onForgotPassword = () => {
-    // Handle forgot password functionality
+   
     Alert.alert('Reset Password', 'Password reset functionality will be implemented here.');
   };
 

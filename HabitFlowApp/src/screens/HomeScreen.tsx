@@ -9,6 +9,7 @@ import {
   FlatList,
   Image,
   Modal,
+  Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getUser } from '../services/storage';
@@ -24,6 +25,8 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import LinearGradient from 'react-native-linear-gradient';
 import { ScrollView } from 'react-native';
 import { Icons } from '../utils/Icon';
+import { deleteHabit } from '../services/habitServices';
+import { saveGoals } from '../services/goalServices';
 
 
 type RootStackParamList = {
@@ -144,15 +147,55 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleEditHabit = () => {
-
+  if (selectedHabitId) {
     setDropdownVisible(false);
-  };
+    navigation.navigate('EditHabit', { habitId: selectedHabitId });
+  }
+};
 
   const handleDeleteHabit = () => {
+  if (selectedHabitId) {
+    const habitToDelete = habits.find(h => h.id === selectedHabitId);
+    if (habitToDelete) {
+      Alert.alert(
+        'Confirm Delete',
+        `Are you sure you want to delete "${habitToDelete.name}"? This action cannot be undone.`,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await deleteHabit(selectedHabitId);
+                
+                // Also delete the associated goal if it exists
+                if (habitToDelete.goalId) {
+                  const updatedGoals = goals.filter(g => g.id !== habitToDelete.goalId);
+                  await saveGoals(updatedGoals);
+                  setGoals(updatedGoals);
+                }
 
-    setDropdownVisible(false);
-  };
-
+                // Refresh habits list
+                await loadHabits();
+                
+                Alert.alert('Success', 'Habit deleted successfully.');
+              } catch (error) {
+                console.error('Error deleting habit:', error);
+                Alert.alert('Error', 'Could not delete habit. Please try again.');
+              } finally {
+                setDropdownVisible(false);
+              }
+            },
+          },
+        ]
+      );
+    }
+  }
+};
   const getFormattedDate = () => {
     const days = ['Sun,', 'Mon,', 'Tue,', 'Wed,', 'Thu,', 'Fri,', 'Sat,'];
     const months = [
@@ -326,32 +369,33 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </ScrollView>
 
       {/* Edit/Delete Modal */}
-      {dropdownVisible && (
-        <View style={[styles.dropdownMenu, { left: dropdownPosition.x, top: dropdownPosition.y }]}>
-          <TouchableOpacity
-            style={styles.dropdownOption}
-            onPress={handleEditHabit}
-          >
-            <Text style={styles.dropdownOptionText}>Edit</Text>
-          </TouchableOpacity>
-          <View />
-          <TouchableOpacity
-            style={styles.dropdownOption}
-            onPress={handleDeleteHabit}
-          >
-            <Text style={[styles.dropdownOptionText, styles.dropdownOptionText]}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <Modal
+  visible={dropdownVisible}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setDropdownVisible(false)}
+>
+  <TouchableOpacity
+    style={styles.modalOverlay}
+    activeOpacity={1}
+    onPressOut={() => setDropdownVisible(false)}
+  >
+    <View
+      style={[
+        styles.dropdownMenu,
+        { top: dropdownPosition.y, left: dropdownPosition.x },
+      ]}
+    >
+      <TouchableOpacity style={styles.dropdownItem} onPress={handleEditHabit}>
+        <Text style={styles.dropdownText}>Edit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.dropdownItem} onPress={handleDeleteHabit}>
+        <Text style={[styles.dropdownText, { color: 'red' }]}>Delete</Text>
+      </TouchableOpacity>
+    </View>
+  </TouchableOpacity>
+</Modal>
 
-      {/*close dropdown */}
-      {dropdownVisible && (
-        <TouchableOpacity
-          style={styles.overlayTouchable}
-          activeOpacity={1}
-          onPress={() => setDropdownVisible(false)}
-        />
-      )}
 
 
       {/* Floating Action Button */}
@@ -665,6 +709,24 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 999,
   },
+
+  modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+},
+
+
+
+dropdownItem: {
+  paddingVertical: 10,
+  paddingHorizontal: 15,
+},
+
+dropdownText: {
+  fontSize: 16,
+  color: '#333',
+},
+
 });
 
 export default HomeScreen;

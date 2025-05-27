@@ -21,7 +21,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const onSignUp = async () => {
-    // Basic validation
+   
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('Please fill all fields');
       return;

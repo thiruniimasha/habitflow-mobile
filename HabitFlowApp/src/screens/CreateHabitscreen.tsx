@@ -20,7 +20,7 @@ import { Picker } from '@react-native-picker/picker';
 
 type RootStackParamList = {
   Home: undefined;
-  CreateHabit: undefined;
+   CreateHabit: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateHabit'>;

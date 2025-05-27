@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Habit } from '../types/Habit';
+import { Habit } from '../types/Habit.ts';
 
 const HABITS_KEY = 'userHabits';
 const COMPLETED_HABITS_KEY = 'completedHabits';
@@ -57,6 +57,23 @@ export const deleteHabit = async (habitId: string): Promise<void> => {
     throw error;
   }
 };
+
+/**
+ * Update a habit
+ */
+export const updateHabit = async (updatedHabit: Habit): Promise<void> => {
+  try {
+    const habits = await getHabits();
+    const updatedHabits = habits.map(habit =>
+      habit.id === updatedHabit.id ? updatedHabit : habit
+    );
+    await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(updatedHabits));
+  } catch (error) {
+    console.error('Error updating habit:', error);
+    throw error;
+  }
+};
+
 
 /**
  * Get completed habits
@@ -173,34 +190,42 @@ export const getHabitStats = async (period: 'day' | 'week' | 'month') => {
     });
     
     
-    const streaks: { [key: string]: number } = {};
-    
-    habits.forEach(habit => {
-      let streak = 0;
-      let dayCount = 0;
-      
-      
-      while (dayCount < 30) { 
-        const checkDate = new Date(today);
-        checkDate.setDate(checkDate.getDate() - dayCount);
-        const dateStr = checkDate.toISOString().split('T')[0];
-        const completedForDate = completedHabits[dateStr] || [];
-        
+    // Calculate streaks
+const streaks: { [key: string]: number } = {};
+
+habits.forEach(habit => {
+  let streak = 0;
+  let dayCount = 0;
+
+  while (dayCount < 30) {
+    const checkDate = new Date(today);
+    checkDate.setDate(checkDate.getDate() - dayCount);
+    const dateStr = checkDate.toISOString().split('T')[0];
+    const completedForDate = completedHabits[dateStr] || [];
+
+    if (habit.frequency === 'daily') {
+      if (completedForDate.includes(habit.id)) {
+        streak++;
+      } else {
+        break;
+      }
+      dayCount++;
+    } else if (habit.frequency === 'weekly') {
+      const weekDay = checkDate.getDay(); // Sunday = 0
+      if (weekDay === 0) {
         if (completedForDate.includes(habit.id)) {
           streak++;
         } else {
-          
-          if (habit.frequency === 'daily' || 
-             (habit.frequency === 'weekly' && dayCount >= 7)) {
-            break;
-          }
+          break;
         }
-        
-        dayCount++;
       }
-      
-      streaks[habit.id] = streak;
-    });
+      dayCount++;
+    }
+  }
+
+  streaks[habit.id] = streak;
+});
+
     
     return {
       habitsCompleted,
